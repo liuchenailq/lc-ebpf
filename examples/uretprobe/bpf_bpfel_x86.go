@@ -16,6 +16,8 @@ import (
 type bpfEvent struct {
 	Pid  uint32
 	Line [80]uint8
+	Uid  uint32
+	Gid  uint32
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
