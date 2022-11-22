@@ -6,7 +6,7 @@
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
-struct open_info
+struct info
 {
     /* The first 8 bytes is not allowed to read */
     unsigned long pad;
@@ -15,7 +15,7 @@ struct open_info
     int syscall_nr;
     char * filename;
     int flags;
-    unsigned short mode
+    unsigned short mode;
 };
 
 struct {
@@ -23,11 +23,11 @@ struct {
 } events SEC(".maps");
 
 // Force emitting struct event into the ELF.
-const struct open_info *unused __attribute__((unused));
+const struct info *unused __attribute__((unused));
 
 SEC("tracepoint/syscalls/sys_enter_open")
-int sys_enter_open(struct open_info *info){
-    bpf_perf_event_output(NULL, &events, BPF_F_CURRENT_CPU, info, sizeof(open_info));
+int sys_enter_open(struct info *f){
+    bpf_perf_event_output(NULL, &events, BPF_F_CURRENT_CPU, f, sizeof(info));
 }
 
 
