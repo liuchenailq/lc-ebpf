@@ -108,6 +108,6 @@ func main() {
 			continue
 		}
 
-		log.Printf("%s:%s return value: %s", binPath, symbol, unix.ByteSliceToString(event.Line[:]))
+		log.Printf("uid %d, %s:%s return value: %s", event.Uid, binPath, symbol, unix.ByteSliceToString(event.Line[:]))
 	}
 }
