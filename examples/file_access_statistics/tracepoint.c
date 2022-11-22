@@ -27,7 +27,7 @@ const struct open_info *unused __attribute__((unused));
 
 SEC("tracepoint/syscalls/sys_enter_open")
 int sys_enter_open(struct open_info *info){
-    bpf_perf_event_output(NULL, &events, BPF_F_CURRENT_CPU, info, sizeof(*info));
+    bpf_perf_event_output(NULL, &events, BPF_F_CURRENT_CPU, info, sizeof(open_info));
 }
 
 
