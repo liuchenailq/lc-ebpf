@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
@@ -81,6 +82,8 @@ func main() {
 			continue
 		}
 		filename := unix.ByteSliceToString(event.Filename[:])
-		log.Printf("SyscallNr %d Filename %s Flags %d Mode %d", event.SyscallNr, filename, event.Flags, event.Mode)
+		if filename == "/opt/ncinfo/local_machine_info" || strings.HasSuffix(filename, "local_machine_info") {
+			log.Printf("SyscallNr %d Filename %s Flags %d Mode %d", event.SyscallNr, filename, event.Flags, event.Mode)
+		}
 	}
 }
