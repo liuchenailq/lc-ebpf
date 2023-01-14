@@ -1,14 +1,14 @@
 // +build ignore
 
+#include "bpf_tracing.h"
 #include "common.h"
 #include <sys/types.h>
-#include "bpf_tracing.h"
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
 struct event {
   int syscall_nr;
-  u8 filename [1024];
+  u8 filename[1024];
   int flags;
   mode_t mode;
 };
@@ -32,12 +32,12 @@ struct syscalls_enter_open_args {
 
 SEC("tracepoint/syscalls/sys_enter_open")
 int sys_enter_open(struct syscalls_enter_open_args *ctx) {
-    struct event *e;
-    char *fname = (char *)(ctx->filename_ptr);
-    e->syscall_nr = ctx->syscall_nr;
-    e->flags = ctx->flags;
-    e->mode = ctx->mode;
-    bpf_probe_read_str(&e->filename, sizeof(e->filename), fname);
-    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
-    return 0;
+  struct event *e;
+  char *fname = (char *)(ctx->filename_ptr);
+  e->syscall_nr = ctx->syscall_nr;
+  e->flags = ctx->flags;
+  e->mode = ctx->mode;
+  bpf_probe_read_str(&e->filename, sizeof(e->filename), fname);
+  bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+  return 0;
 }
