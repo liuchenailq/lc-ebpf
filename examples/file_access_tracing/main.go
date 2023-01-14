@@ -7,6 +7,7 @@ import (
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
+	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"os/signal"
@@ -79,6 +80,7 @@ func main() {
 			log.Printf("parsing perf event: %s", err)
 			continue
 		}
-		log.Printf("SyscallNr %d Filename %+v Flags %d Mode %d", event.SyscallNr, event.Filename, event.Flags, event.Mode)
+		filename := unix.ByteSliceToString(event.Filename[:])
+		log.Printf("SyscallNr %d Filename %s Flags %d Mode %d", event.SyscallNr, filename, event.Flags, event.Mode)
 	}
 }
