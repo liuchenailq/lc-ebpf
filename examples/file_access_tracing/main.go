@@ -3,9 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
@@ -17,8 +15,6 @@ import (
 
 // $BPF_CLANG and $BPF_CFLAGS are set by the Makefile.
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -target amd64 -type event bpf sys_enter_open.c -- -I../headers
-
-const mapKey uint32 = 0
 
 func main() {
 	stopper := make(chan os.Signal, 1)
@@ -83,7 +79,6 @@ func main() {
 			log.Printf("parsing perf event: %s", err)
 			continue
 		}
-		data, _ := json.Marshal(event)
-		fmt.Println(string(data))
+		log.Printf("SyscallNr %d Filename %+v Flags %d Mode %d", event.SyscallNr, event.Filename, event.Flags, event.Mode)
 	}
 }
