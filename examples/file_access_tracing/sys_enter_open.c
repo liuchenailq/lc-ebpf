@@ -29,8 +29,19 @@ struct syscalls_enter_open_args {
   long long mode;
 };
 
-SEC("tracepoint/syscalls/sys_enter_open")
-int sys_enter_open(struct syscalls_enter_open_args *ctx) {
+struct syscalls_enter_openat_args {
+  /* The first 8 bytes is not allowed to read */
+  unsigned long pad;
+
+  long long syscall_nr;
+  long long dfd;
+  long long filename_ptr;
+  long long flags;
+  long long mode;
+};
+
+SEC("tracepoint/syscalls/sys_enter_openat")
+int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
   struct event event;
   char *fname = (char *)(ctx->filename_ptr);
   event.syscall_nr = ctx->syscall_nr;

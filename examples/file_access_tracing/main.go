@@ -32,7 +32,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	kp, err := link.Tracepoint("syscalls", "sys_enter_open", objs.SysEnterOpen, nil)
+	kp, err := link.Tracepoint("syscalls", "sys_enter_openat", objs.SysEnterOpen, nil)
 	if err != nil {
 		log.Fatalf("opening tracepoint: %s", err)
 	}
