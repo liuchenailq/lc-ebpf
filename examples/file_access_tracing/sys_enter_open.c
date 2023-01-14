@@ -5,8 +5,6 @@
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
-char* local_machine_info = "local_machine_info"
-
 struct event {
   u32 syscall_nr;
   u8 filename[400];
@@ -42,31 +40,31 @@ struct syscalls_enter_openat_args {
   long long mode;
 };
 
-int endWith(const char *originString, char *end) {
-	if (originString == NULL || end == NULL || strlen(end) > strlen(originString)) {
-		return -1;
-	}
-	int n = strlen(end);
-	int m = strlen(originString);
-	int i;
-	for (i = 0; i < n; i++) {
-	    if (originString[m-i-1] != end[n-i-1]) {
-		    return 1;
-		}
-	}
-	return 0;
-}
+/*int endWith(char *originString, char *end) {
+  if (originString == NULL || end == NULL ||
+      strlen(end) > strlen(originString)) {
+    return -1;
+  }
+  int n = strlen(end);
+  int m = strlen(originString);
+  int i;
+  for (i = 0; i < n; i++) {
+    if (originString[m - i - 1] != end[n - i - 1]) {
+      return 1;
+    }
+  }
+  return 0;
+}*/
 
 SEC("tracepoint/syscalls/sys_enter_openat")
 int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
   char *fname = (char *)(ctx->filename_ptr);
-  if endWith(fname, local_machine_info) == 0{
-    struct event event;
-    event.syscall_nr = ctx->syscall_nr;
-    event.flags = ctx->flags;
-    event.mode = ctx->mode;
-    bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
-    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
-  }
+  struct event event;
+  event.syscall_nr = ctx->syscall_nr;
+  event.flags = ctx->flags;
+  event.mode = ctx->mode;
+  bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
+  bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+
   return 0;
 }
