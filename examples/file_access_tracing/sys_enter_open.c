@@ -8,7 +8,7 @@ char __license[] SEC("license") = "Dual MIT/GPL";
 
 struct event {
   u32 syscall_nr;
-  u8 filename[400];
+  u8 filename[100];
   u32 flags;
   u32 mode;
   u32 pid;
@@ -47,24 +47,43 @@ SEC("tracepoint/syscalls/sys_enter_openat")
 int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
   char *fname = (char *)(ctx->filename_ptr);
   struct event event;
-  event.syscall_nr = ctx->syscall_nr;
-  event.flags = ctx->flags;
-  event.mode = ctx->mode;
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
-  event.pid = bpf_get_current_pid_tgid() >> 32;
-  bpf_get_current_comm(&event.c_comm, 16);
-  bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
-  // get ppid
-  // struct task_struct *task;
-  // struct task_struct *parent;
-  // task = (struct task_struct *)bpf_get_current_task();
-  // bpf_probe_read(&event.ppid, sizeof(event.ppid), (void *)task);
-  // event.ppid = task->real_parent->tgid;
-  /*if (task != NULL) {
-    bpf_probe_read_kernel(parent, sizeof(parent), task->real_parent);
-    if (parent != NULL) {
-      bpf_probe_read_kernel(&event.ppid, sizeof(event.ppid), &parent->tgid);
-    }
-  }*/
-  return 0;
+  if ((event.filename[0] == '/' && event.filename[1] == 'o' &&
+       event.filename[2] == 'p' && event.filename[3] == 't' &&
+       event.filename[4] == '/' && event.filename[5] == 'n' &&
+       event.filename[6] == 'c' && event.filename[7] == 'i' &&
+       event.filename[8] == 'n' && event.filename[9] == 'f' &&
+       event.filename[10] == 'o') ||
+      (event.filename[0] == 'l' && event.filename[1] == 'o' &&
+       event.filename[2] == 'c' && event.filename[3] == 'a' &&
+       event.filename[4] == 'l' && event.filename[5] == '_' &&
+       event.filename[6] == 'm' && event.filename[7] == 'a' &&
+       event.filename[8] == 'c' && event.filename[9] == 'h' &&
+       event.filename[10] == 'i' && event.filename[11] == 'n' &&
+       event.filename[12] == 'e' && event.filename[13] == '_' &&
+       event.filename[14] == 'i' && event.filename[15] == 'n' &&
+       event.filename[16] == 'f' && event.filename[17] == 'o')) {
+
+    event.syscall_nr = ctx->syscall_nr;
+    event.flags = ctx->flags;
+    event.mode = ctx->mode;
+    event.pid = bpf_get_current_pid_tgid() >> 32;
+    bpf_get_current_comm(&event.c_comm, 16);
+    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event,
+                          sizeof(event));
+    // get ppid
+    // struct task_struct *task;
+    // struct task_struct *parent;
+    // task = (struct task_struct *)bpf_get_current_task();
+    // bpf_probe_read(&event.ppid, sizeof(event.ppid), (void *)task);
+    // event.ppid = task->real_parent->tgid;
+    /*if (task != NULL) {
+      bpf_probe_read_kernel(parent, sizeof(parent), task->real_parent);
+      if (parent != NULL) {
+        bpf_probe_read_kernel(&event.ppid, sizeof(event.ppid), &parent->tgid);
+      }
+    }*/
+    return 0;
+  }
+  return -1;
 }

@@ -15,7 +15,7 @@ import (
 
 type bpfEvent struct {
 	SyscallNr uint32
-	Filename  [400]uint8
+	Filename  [100]uint8
 	Flags     uint32
 	Mode      uint32
 	Pid       uint32
