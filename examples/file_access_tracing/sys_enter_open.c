@@ -5,11 +5,16 @@
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
+#define TASK_COMM_LEN 16
+
 struct event {
   u32 syscall_nr;
   u8 filename[400];
   u32 flags;
   u32 mode;
+  int pid;
+  char comm[TASK_COMM_LEN];
+  int ppid;
 };
 
 struct {
@@ -64,7 +69,14 @@ int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
   event.flags = ctx->flags;
   event.mode = ctx->mode;
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
-  bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
 
+  event.pid = bpf_get_current_pid_tgid() >> 32;
+  bpf_get_current_comm(&event.comm, TASK_COMM_LEN);
+  struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+  if (task != NULL) {
+    event.ppid = task->real_parent->tgid
+  }
+
+  bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
   return 0;
 }
