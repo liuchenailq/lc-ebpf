@@ -3,12 +3,10 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"github.com/prometheus/procfs"
 	"io"
 	"io/fs"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 // ExtendProcStat extend proc stat import from procfs.ProcStat struct
@@ -224,19 +222,10 @@ func ReadFileNoStat(filename string) ([]byte, error) {
 }
 
 func GetProcCmdLine(pid int) string {
-	proc, err := procfs.NewProc(pid)
+	data, err := ReadFileNoStat(fmt.Sprintf("/proc/%d/cmdline", pid))
 	if err != nil {
 		return ""
+	} else {
+		return string(data)
 	}
-
-	cmdline, err := proc.CmdLine()
-	if err != nil {
-		return ""
-	}
-
-	if len(cmdline) < 1 {
-		return ""
-	}
-
-	return strings.Join(cmdline, " ")
 }
