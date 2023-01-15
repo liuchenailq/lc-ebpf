@@ -2,6 +2,7 @@
 
 #include "bpf_tracing.h"
 #include "common.h"
+#include <linux/sched.h>
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
@@ -10,6 +11,8 @@ struct event {
   u8 filename[400];
   u32 flags;
   u32 mode;
+  u32 pid;
+  u8 c_comm[16];
 };
 
 struct {
@@ -48,8 +51,20 @@ int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
   event.flags = ctx->flags;
   event.mode = ctx->mode;
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
-
-
+  event.pid = bpf_get_current_pid_tgid() >> 32;
+  bpf_get_current_comm(&event.c_comm, 16);
   bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+  // get ppid
+  // struct task_struct *task;
+  // struct task_struct *parent;
+  // task = (struct task_struct *)bpf_get_current_task();
+  // bpf_probe_read(&event.ppid, sizeof(event.ppid), (void *)task);
+  // event.ppid = task->real_parent->tgid;
+  /*if (task != NULL) {
+    bpf_probe_read_kernel(parent, sizeof(parent), task->real_parent);
+    if (parent != NULL) {
+      bpf_probe_read_kernel(&event.ppid, sizeof(event.ppid), &parent->tgid);
+    }
+  }*/
   return 0;
 }

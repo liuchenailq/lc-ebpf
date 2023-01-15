@@ -18,6 +18,8 @@ type bpfEvent struct {
 	Filename  [400]uint8
 	Flags     uint32
 	Mode      uint32
+	Pid       uint32
+	C_comm    [16]uint8
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
