@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/cilium/ebpf/examples/utils"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
@@ -90,12 +91,17 @@ func handleEvent(event bpfEvent) {
 	comm := unix.ByteSliceToString(event.C_comm[:])
 	pid := int(event.Pid)
 	comLine := utils.GetProcCmdLine(pid)
-	extendProcStat, err := utils.NewExtendProcStat(pid)
-	if err != nil {
-		log.Printf("pid is %d;comm is %s;comline is %s;filename is %s", pid, comm, comLine, filename)
-	} else {
-		ppid := extendProcStat.PPID
-		PCmdLine := utils.GetProcCmdLine(ppid)
-		log.Printf("pid is %d;comm is %s;comline is %s;ppid is %d;p_cmdline is %s;filename is %s", pid, comm, comLine, ppid, PCmdLine, filename)
+
+	out := bytes.NewBufferString(fmt.Sprintf("filename is %s;pid is %d;comm is %s;comline is %s", filename, pid, comm, comLine))
+
+	level := 1
+	ppid, PCmdLine, err := utils.GetPPidAndCmdLine(pid)
+	maxLevel := 4
+	for err == nil && ppid > 1 && level < maxLevel {
+		out.WriteString(fmt.Sprintf(";pid_level%d is %d;cmdline_level%d is %s", level, ppid, level, PCmdLine))
+		ppid, PCmdLine, err = utils.GetPPidAndCmdLine(ppid)
+		level++
 	}
+
+	log.Printf(out.String())
 }

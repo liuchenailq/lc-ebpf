@@ -229,3 +229,14 @@ func GetProcCmdLine(pid int) string {
 		return string(data)
 	}
 }
+
+func GetPPidAndCmdLine(pid int) (int, string, error) {
+	extendProcStat, err := NewExtendProcStat(pid)
+	if err != nil {
+		return -1, "", err
+	} else {
+		ppid := extendProcStat.PPID
+		PCmdLine := GetProcCmdLine(ppid)
+		return ppid, PCmdLine, err
+	}
+}
