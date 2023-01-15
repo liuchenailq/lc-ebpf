@@ -33,7 +33,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	kp, err := link.Tracepoint("syscalls", "sys_enter_openat", objs.SysEnterOpen, nil)
+	kp, err := link.Tracepoint("syscalls", "sys_enter_open", objs.SysEnterOpen, nil)
 	if err != nil {
 		log.Fatalf("opening tracepoint: %s", err)
 	}
@@ -81,9 +81,7 @@ func main() {
 			continue
 		}
 		filename := unix.ByteSliceToString(event.Filename[:])
-		//if filename == "/opt/ncinfo/local_machine_info" || strings.HasSuffix(filename, "local_machine_info") {
-	        comm := unix.ByteSliceToString(event.C_comm[:])
-	        log.Printf("SyscallNr %d Filename %s Flags %d Mode %d pid %d comm %s", event.SyscallNr, filename, event.Flags, event.Mode, event.Pid, comm)
-		//}
+		comm := unix.ByteSliceToString(event.C_comm[:])
+		log.Printf("SyscallNr %d Filename %s Flags %d Mode %d pid %d comm %s", event.SyscallNr, filename, event.Flags, event.Mode, event.Pid, comm)
 	}
 }

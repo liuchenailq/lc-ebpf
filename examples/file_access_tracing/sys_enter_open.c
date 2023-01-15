@@ -43,8 +43,8 @@ struct syscalls_enter_openat_args {
   long long mode;
 };
 
-SEC("tracepoint/syscalls/sys_enter_openat")
-int sys_enter_open(struct syscalls_enter_openat_args *ctx) {
+SEC("tracepoint/syscalls/sys_enter_open")
+int sys_enter_open(struct syscalls_enter_open_args *ctx) {
   char *fname = (char *)(ctx->filename_ptr);
   struct event event;
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
