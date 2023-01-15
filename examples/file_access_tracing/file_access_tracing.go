@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/cilium/ebpf/examples/utils"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
@@ -80,8 +81,21 @@ func main() {
 			log.Printf("parsing perf event: %s", err)
 			continue
 		}
-		filename := unix.ByteSliceToString(event.Filename[:])
-		comm := unix.ByteSliceToString(event.C_comm[:])
-		log.Printf("SyscallNr %d Filename %s Flags %d Mode %d pid %d comm %s", event.SyscallNr, filename, event.Flags, event.Mode, event.Pid, comm)
+		handleEvent(event)
+	}
+}
+
+func handleEvent(event bpfEvent) {
+	filename := unix.ByteSliceToString(event.Filename[:])
+	comm := unix.ByteSliceToString(event.C_comm[:])
+	pid := int(event.Pid)
+	comLine := utils.GetProcCmdLine(pid)
+	extendProcStat, err := utils.NewExtendProcStat(pid)
+	if err != nil {
+		log.Printf("pid is %d;comm is %s;comline is %s;filename is %s", pid, comm, comLine, filename)
+	} else {
+		ppid := extendProcStat.PPID
+		PCmdLine := utils.GetProcCmdLine(ppid)
+		log.Printf("pid is %d;comm is %s;comline is %s;ppid is %d;p_cmdline is %s;filename is %s", pid, comm, comLine, ppid, PCmdLine, filename)
 	}
 }
