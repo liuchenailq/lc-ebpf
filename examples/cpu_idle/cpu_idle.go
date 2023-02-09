@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
@@ -18,10 +19,16 @@ import (
 )
 
 // $BPF_CLANG and $BPF_CFLAGS are set by the Makefile.
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS bpf trace_idle.c -- -I../headers
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -type event bpf trace_idle.c -- -I../headers
 
 const doIdleFunc = "do_idle"
 const scheduleIdle = "schedule_idle"
+
+type bpfEvent struct {
+	Cpu  uint32
+	Now  uint64
+	Flag uint32
+}
 
 func main() {
 	stopper := make(chan os.Signal, 1)
@@ -96,6 +103,8 @@ func main() {
 			log.Printf("parsing perf event: %s", err)
 			continue
 		}
+
+		log.Println(fmt.Sprintf("cpu: %d, now: %d, flag: %d", event.Cpu, event.Now, event.Flag))
 
 	}
 
