@@ -8,7 +8,7 @@ struct event{
     u32 cpu;
     u64 now;
     u32 flag;
-}
+};
 
 struct {
   __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
@@ -33,6 +33,7 @@ int kprobe_schedule_idle(struct pt_regs *ctx){
     // cpu leaves idle state
     __u32 cpu = bpf_get_smp_processor_id();
     __u64 now = bpf_ktime_get_ns();
+    struct event event;
     event.cpu = cpu;
     event.now = now;
     event.flag = 0;
