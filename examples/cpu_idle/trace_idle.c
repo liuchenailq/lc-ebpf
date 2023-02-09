@@ -20,9 +20,9 @@ int kprobe_do_idle(struct pt_regs *ctx){
     __u32 cpu = bpf_get_smp_processor_id();
     __u64 now = bpf_ktime_get_ns();
     struct event event;
-    event.cpu = cpu
-    event.now = now
-    event.flag = 1
+    event.cpu = cpu;
+    event.now = now;
+    event.flag = 1;
     bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event,
                               sizeof(event));
     return 0;
@@ -33,9 +33,9 @@ int kprobe_schedule_idle(struct pt_regs *ctx){
     // cpu leaves idle state
     __u32 cpu = bpf_get_smp_processor_id();
     __u64 now = bpf_ktime_get_ns();
-    event.cpu = cpu
-    event.now = now
-    event.flag = 0
+    event.cpu = cpu;
+    event.now = now;
+    event.flag = 0;
     bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event,
                               sizeof(event));
     return 0;
