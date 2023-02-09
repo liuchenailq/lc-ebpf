@@ -24,12 +24,6 @@ import (
 const doIdleFunc = "do_idle"
 const scheduleIdle = "schedule_idle"
 
-type bpfEvent struct {
-	Cpu  uint32
-	Now  uint64
-	Flag uint32
-}
-
 func main() {
 	stopper := make(chan os.Signal, 1)
 	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
