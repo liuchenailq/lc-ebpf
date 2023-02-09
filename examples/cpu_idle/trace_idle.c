@@ -6,8 +6,8 @@ char __license[] SEC("license") = "Dual MIT/GPL";
 
 struct event {
   u32 cpu;
-  u64 now;
   u32 flag;
+  u64 now;
 };
 
 struct {

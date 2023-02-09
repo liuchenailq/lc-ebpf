@@ -15,10 +15,8 @@ import (
 
 type bpfEvent struct {
 	Cpu  uint32
-	_    [4]byte
-	Now  uint64
 	Flag uint32
-	_    [4]byte
+	Now  uint64
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
