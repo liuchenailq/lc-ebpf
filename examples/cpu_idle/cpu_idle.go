@@ -10,15 +10,15 @@ import (
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
 	"log"
-	"os"
-	"os/signal"
+	//"os"
+	//"os/signal"
 	"strings"
-	"syscall"
+	//"syscall"
 	"time"
 )
 
 // $BPF_CLANG and $BPF_CFLAGS are set by the Makefile.
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS bpf trace_idle_with_hash_map.c -- -I../headers
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc $BPF_CLANG -cflags $BPF_CFLAGS -target amd64 bpf trace_idle_with_hash_map.c -- -I../headers
 
 const doIdleFunc = "do_idle"
 const scheduleIdle = "schedule_idle"
@@ -52,18 +52,20 @@ func main() {
 	}
 	defer kp1.Close()
 
-	stopper := make(chan os.Signal, 1)
-	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
+
+	//stopper := make(chan os.Signal, 1)
+	//signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
 
 	ticker := time.NewTicker(1 * time.Second)
-
+	defer ticker.Stop()
+	/*
 	go func() {
 		// Wait for a signal and close the perf reader,
 		// which will interrupt rd.Read() and make the program exit.
 		<-stopper
 		log.Println("Received signal, exiting program..")
 		ticker.Stop()
-	}()
+	}()*/
 
 	for range ticker.C {
 		s, err := processCpuIdle(objs.IdleDurationTimeMap)
