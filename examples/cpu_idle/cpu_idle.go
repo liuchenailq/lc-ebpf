@@ -23,15 +23,15 @@ const scheduleIdle = "schedule_idle"
 
 var (
 	cpuCores              int
-	samplePeriodNS        int64
-	lastIdleDurationTimes []int64
+	samplePeriodNS        uint64
+	lastIdleDurationTimes []uint64
 	calcIter              int64
 )
 
 func init() {
 	cpuCores, _ = cpu.Counts(true)
-	lastIdleDurationTimes = make([]int64, cpuCores)
-	samplePeriodNS = int64(1000000000)
+	lastIdleDurationTimes = make([]uint64, cpuCores)
+	samplePeriodNS = uint64(1000000000)
 	calcIter = int64(0)
 }
 
@@ -79,13 +79,13 @@ func main() {
 func calcCpuUsage(m *ebpf.Map) (string, error) {
 	var (
 		sb                    strings.Builder
-		cpu                   int
-		totalIdleDurationTime int64
+		cpu                   uint32
+		totalIdleDurationTime uint64
 	)
 	now := time.Now()
 	iter := m.Iterate()
 	for iter.Next(&cpu, &totalIdleDurationTime) {
-		if cpu < cpuCores {
+		if int(cpu) < cpuCores {
 			if calcIter > 0 {
 				durationTime := totalIdleDurationTime - lastIdleDurationTimes[cpu]
 				sb.WriteString(fmt.Sprintf("%s cpu %d, %.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
