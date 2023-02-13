@@ -4,7 +4,7 @@
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
-#define MAX_MAP_ENTRIES 8
+#define MAX_MAP_ENTRIES 20
 
 // start idle time of per-cpu
 struct {
@@ -47,12 +47,6 @@ int kprobe_schedule_idle(struct pt_regs *ctx) {
     __u64 *value = bpf_map_lookup_elem(&idle_duration_time_map, &cpu);
     if (value) {
       duration_time = duration_time + *value;
-      if (cpu == 0) {
-        const char fmt_str[] = "schedule_cpu, current_duration_time %llu, "
-                               "last_duration_time %llu, duration_time %llu\n";
-        bpf_trace_printk(fmt_str, sizeof(fmt_str), now - *start_idle_time,
-                         *value, duration_time);
-      }
       bpf_map_update_elem(&idle_duration_time_map, &cpu, &duration_time,
                           BPF_EXIST);
     } else {

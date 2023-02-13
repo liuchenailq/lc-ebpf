@@ -9,11 +9,9 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
+	"github.com/shirou/gopsutil/cpu"
 	"log"
-	//"os"
-	//"os/signal"
 	"strings"
-	//"syscall"
 	"time"
 )
 
@@ -22,6 +20,20 @@ import (
 
 const doIdleFunc = "do_idle"
 const scheduleIdle = "schedule_idle"
+
+var (
+	cpuCores              int
+	samplePeriodNS        int64
+	lastIdleDurationTimes []int64
+	calcIter              int64
+)
+
+func init() {
+	cpuCores, _ = cpu.Counts(true)
+	lastIdleDurationTimes = make([]int64, cpuCores)
+	samplePeriodNS = int64(1000000000)
+	calcIter = int64(0)
+}
 
 func main() {
 	// Allow the current process to lock memory for eBPF resources.
@@ -52,42 +64,35 @@ func main() {
 	}
 	defer kp1.Close()
 
-
-	//stopper := make(chan os.Signal, 1)
-	//signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
-
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
-	/*
-	go func() {
-		// Wait for a signal and close the perf reader,
-		// which will interrupt rd.Read() and make the program exit.
-		<-stopper
-		log.Println("Received signal, exiting program..")
-		ticker.Stop()
-	}()*/
-
 	for range ticker.C {
-		s, err := processCpuIdle(objs.IdleDurationTimeMap)
+		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
 		if err != nil {
 			log.Printf("Error reading map: %s", err)
 			continue
 		}
-		log.Printf("Map contents:\n%s", s)
+		log.Printf("%s", s)
 	}
 }
 
-func processCpuIdle(m *ebpf.Map) (string, error) {
+func calcCpuUsage(m *ebpf.Map) (string, error) {
 	var (
-		sb  strings.Builder
-		key uint32
-		val uint64
+		sb                    strings.Builder
+		cpu                   int
+		totalIdleDurationTime int64
 	)
+	now := time.Now()
 	iter := m.Iterate()
-	for iter.Next(&key, &val) {
-		cpu := key
-		idleDurationTime := val
-		sb.WriteString(fmt.Sprintf("\t%d => %d\n", cpu, idleDurationTime))
+	for iter.Next(&cpu, &totalIdleDurationTime) {
+		if cpu < cpuCores {
+			if calcIter > 0 {
+				durationTime := totalIdleDurationTime - lastIdleDurationTimes[cpu]
+				sb.WriteString(fmt.Sprintf("%s cpu %d, %.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
+			}
+			lastIdleDurationTimes[cpu] = totalIdleDurationTime
+		}
 	}
+	calcIter = calcIter + 1
 	return sb.String(), iter.Err()
 }
