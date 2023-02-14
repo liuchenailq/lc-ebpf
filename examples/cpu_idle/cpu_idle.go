@@ -75,8 +75,10 @@ func main() {
 			log.Printf("Error reading map: %s", err)
 			continue
 		}
-		fmt.Printf("%s", s)
-		fmt.Printf("%s\n", "-----------------------")
+		if len(s) > 0 {
+			log.Printf("\ntime\tCPU\t%sidle\n", "%")
+			log.Printf(s)
+		}
 	}
 }
 
@@ -92,7 +94,7 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 		if int(cpu) < cpuCores {
 			if calcIter > 0 {
 				durationTime := totalIdleDurationTime - lastIdleDurationTimes[cpu]
-				sb.WriteString(fmt.Sprintf("time: %s, cpu: %d, idle: %.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
+				sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
 			}
 			lastIdleDurationTimes[cpu] = totalIdleDurationTime
 		}
