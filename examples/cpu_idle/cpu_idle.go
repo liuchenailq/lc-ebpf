@@ -5,6 +5,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
@@ -31,11 +32,13 @@ var (
 func init() {
 	cpuCores, _ = cpu.Counts(true)
 	lastIdleDurationTimes = make([]uint64, cpuCores)
-	samplePeriodNS = uint64(1000000000)
 	calcIter = int64(0)
 }
 
 func main() {
+	flag.Uint64Var(&samplePeriodNS, "s", uint64(1000000000), "samplePeriodNS")
+	flag.Parse()
+
 	// Allow the current process to lock memory for eBPF resources.
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal(err)
@@ -64,7 +67,7 @@ func main() {
 	}
 	defer kp1.Close()
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(time.Duration(samplePeriodNS) * time.Nanosecond)
 	defer ticker.Stop()
 	for range ticker.C {
 		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
