@@ -76,8 +76,8 @@ func main() {
 			continue
 		}
 		if len(s) > 0 {
-			log.Printf("\ntime\tCPU\t%sidle\n", "%")
-			log.Printf(s)
+			fmt.Printf(fmt.Sprintf("\ntime\t\tCPU\t%sidle\n", "%"))
+			fmt.Printf(s)
 		}
 	}
 }
