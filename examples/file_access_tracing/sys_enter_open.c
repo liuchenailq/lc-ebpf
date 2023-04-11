@@ -48,38 +48,15 @@ int sys_enter_open(struct syscalls_enter_open_args *ctx) {
   char *fname = (char *)(ctx->filename_ptr);
   struct event event;
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
-  if ((event.filename[0] == '/' && event.filename[1] == 'o' &&
-       event.filename[2] == 'p' && event.filename[3] == 't' &&
-       event.filename[4] == '/' && event.filename[5] == 'n' &&
-       event.filename[6] == 'c' && event.filename[7] == 'i' &&
-       event.filename[8] == 'n' && event.filename[9] == 'f' &&
-       event.filename[10] == 'o') ||
-      (event.filename[0] == 'l' && event.filename[1] == 'o' &&
-       event.filename[2] == 'c' && event.filename[3] == 'a' &&
-       event.filename[4] == 'l' && event.filename[5] == '_' &&
-       event.filename[6] == 'm' && event.filename[7] == 'a' &&
-       event.filename[8] == 'c' && event.filename[9] == 'h' &&
-       event.filename[10] == 'i' && event.filename[11] == 'n' &&
-       event.filename[12] == 'e' && event.filename[13] == '_' &&
-       event.filename[14] == 'i' && event.filename[15] == 'n' &&
-       event.filename[16] == 'f' && event.filename[17] == 'o') ||
-      (event.filename[16] == 'n' && event.filename[17] == 'c' &&
-       event.filename[18] == '_' && event.filename[19] == 'r' &&
-       event.filename[20] == 'e' && event.filename[21] == 's' &&
-       event.filename[22] == 'o' && event.filename[23] == 'u' &&
-       event.filename[24] == 'r' && event.filename[25] == 'c' &&
-       event.filename[26] == 'e' && event.filename[27] == 's' &&
-       event.filename[28] == '.' && event.filename[29] == 'c' &&
-       event.filename[30] == 'o' && event.filename[31] == 'n' &&
-       event.filename[32] == 'f') ||
-      (event.filename[16] == 'r' && event.filename[17] == 'e' &&
-       event.filename[18] == 's' && event.filename[19] == 'o' &&
-       event.filename[20] == 'u' && event.filename[21] == 'r' &&
-       event.filename[22] == 'c' && event.filename[23] == 'e' &&
-       event.filename[24] == 's' && event.filename[25] == '.' &&
-       event.filename[26] == 'y' && event.filename[27] == 'a' &&
-       event.filename[28] == 'm' && event.filename[29] == 'l')) {
-
+  // /proc/sys/vm/max_map_count
+  if ((event.filename[0] == '/' && event.filename[1] == 'p' &&
+              event.filename[2] == 'r' && event.filename[3] == 'o' &&
+              event.filename[4] == 'c' && event.filename[5] == '/' &&
+              event.filename[6] == 's' && event.filename[7] == 'y' &&
+              event.filename[8] == 's' && event.filename[9] == '/' &&
+              event.filename[10] == 'v' && event.filename[11] == 'm') &&
+              event.filename[12] == '/' && event.filename[13] == 'm' &&
+              event.filename[14] == 'a' && event.filename[15] == 'x' && event.filename[16] == '_' && event.filename[17] == 'm'){
     event.syscall_nr = ctx->syscall_nr;
     event.flags = ctx->flags;
     event.mode = ctx->mode;
