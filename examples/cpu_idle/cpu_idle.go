@@ -107,11 +107,14 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 	now := time.Now()
 	iter := m.Iterate()
 	for iter.Next(&cpu, &totalIdleDurationTime) {
+		if int(cpu) >= cpuCores {
+			continue
+		}
 		duration := time.Now().Nanosecond() - lastCalcTimes[cpu]
 		lastCalcTimes[cpu] = time.Now().Nanosecond()
 		idleDuration := totalIdleDurationTime - lastIdleDurationTimes[cpu]
 		lastIdleDurationTimes[cpu] = totalIdleDurationTime
-		if int(cpu) < cpuCores && coreSet.Contains(cpu) && calcIter > 0 {
+		if coreSet.Contains(cpu) && calcIter > 0 {
 			sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(idleDuration*100.0/uint64(duration))))
 		}
 	}
