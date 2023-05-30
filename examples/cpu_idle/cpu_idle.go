@@ -32,6 +32,7 @@ var (
 	calcIter              int64
 	cpuList               string
 	coreSet               *hashset.Set
+	cpuIdleHistorys       map[uint32][]string
 )
 
 func init() {
@@ -40,6 +41,10 @@ func init() {
 	lastCalcTimes = make([]int64, cpuCores)
 	calcIter = int64(0)
 	coreSet = hashset.New()
+	cpuIdleHistorys = make(map[uint32][]string, 0)
+	for i := 0; i < cpuCores; i++ {
+		cpuIdleHistorys[uint32(i)] = make([]string, 0)
+	}
 }
 
 func main() {
@@ -85,6 +90,7 @@ func main() {
 
 	ticker := time.NewTicker(time.Duration(samplePeriodNS) * time.Nanosecond)
 	defer ticker.Stop()
+	defer printCpuIdleHistorys()
 	for range ticker.C {
 		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
 		if err != nil {
@@ -115,9 +121,19 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 		idleDuration := totalIdleDurationTime - lastIdleDurationTimes[cpu]
 		lastIdleDurationTimes[cpu] = totalIdleDurationTime
 		if coreSet.Contains(cpu) && calcIter > 0 {
-			sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(idleDuration*100.0)/float64(duration)))
+			cpuIdle := float64(idleDuration*100.0) / float64(duration)
+			cpuIdleHistorys[cpu] = append(cpuIdleHistorys[cpu], fmt.Sprintf("%.2f", cpuIdle))
+			sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, cpuIdle))
 		}
 	}
 	calcIter = calcIter + 1
 	return sb.String(), iter.Err()
+}
+
+func printCpuIdleHistorys() {
+	for cpu := 0; cpu < cpuCores; cpu++ {
+		if coreSet.Contains(cpu) {
+			fmt.Println(fmt.Sprintf("cpu %d, idle history: %s", cpu, strings.Join(cpuIdleHistorys[uint32(cpu)], ",")))
+		}
+	}
 }
