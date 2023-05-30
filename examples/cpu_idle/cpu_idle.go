@@ -28,7 +28,7 @@ var (
 	cpuCores              int
 	samplePeriodNS        uint64
 	lastIdleDurationTimes []uint64
-	lastCalcTimes         []int
+	lastCalcTimes         []int64
 	calcIter              int64
 	cpuList               string
 	coreSet               *hashset.Set
@@ -37,7 +37,7 @@ var (
 func init() {
 	cpuCores, _ = cpu.Counts(true)
 	lastIdleDurationTimes = make([]uint64, cpuCores)
-	lastCalcTimes = make([]int, cpuCores)
+	lastCalcTimes = make([]int64, cpuCores)
 	calcIter = int64(0)
 	coreSet = hashset.New()
 }
@@ -110,8 +110,8 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 		if int(cpu) >= cpuCores {
 			continue
 		}
-		duration := time.Now().Nanosecond() - lastCalcTimes[cpu]
-		lastCalcTimes[cpu] = time.Now().Nanosecond()
+		duration := time.Now().UnixNano() - lastCalcTimes[cpu]
+		lastCalcTimes[cpu] = time.Now().UnixNano()
 		idleDuration := totalIdleDurationTime - lastIdleDurationTimes[cpu]
 		lastIdleDurationTimes[cpu] = totalIdleDurationTime
 		if coreSet.Contains(cpu) && calcIter > 0 {
