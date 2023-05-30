@@ -28,6 +28,7 @@ var (
 	cpuCores              int
 	samplePeriodNS        uint64
 	lastIdleDurationTimes []uint64
+	lastCalcTimes         []int
 	calcIter              int64
 	cpuList               string
 	coreSet               *hashset.Set
@@ -36,6 +37,7 @@ var (
 func init() {
 	cpuCores, _ = cpu.Counts(true)
 	lastIdleDurationTimes = make([]uint64, cpuCores)
+	lastCalcTimes = make([]int, cpuCores)
 	calcIter = int64(0)
 	coreSet = hashset.New()
 }
@@ -105,12 +107,12 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 	now := time.Now()
 	iter := m.Iterate()
 	for iter.Next(&cpu, &totalIdleDurationTime) {
-		if int(cpu) < cpuCores && coreSet.Contains(cpu) {
-			if calcIter > 0 {
-				durationTime := totalIdleDurationTime - lastIdleDurationTimes[cpu]
-				sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
-			}
-			lastIdleDurationTimes[cpu] = totalIdleDurationTime
+		duration := time.Now().Nanosecond() - lastCalcTimes[cpu]
+		lastCalcTimes[cpu] = time.Now().Nanosecond()
+		idleDuration := totalIdleDurationTime - lastIdleDurationTimes[cpu]
+		lastIdleDurationTimes[cpu] = totalIdleDurationTime
+		if int(cpu) < cpuCores && coreSet.Contains(cpu) && calcIter > 0 {
+			sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(idleDuration*100.0/uint64(duration))))
 		}
 	}
 	calcIter = calcIter + 1
