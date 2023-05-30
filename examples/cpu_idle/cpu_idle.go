@@ -10,8 +10,10 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
+	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/shirou/gopsutil/cpu"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -27,17 +29,29 @@ var (
 	samplePeriodNS        uint64
 	lastIdleDurationTimes []uint64
 	calcIter              int64
+	cpuList               string
+	coreSet               *hashset.Set
 )
 
 func init() {
 	cpuCores, _ = cpu.Counts(true)
 	lastIdleDurationTimes = make([]uint64, cpuCores)
 	calcIter = int64(0)
+	coreSet = hashset.New()
 }
 
 func main() {
 	flag.Uint64Var(&samplePeriodNS, "s", uint64(1000000000), "samplePeriodNS")
+	flag.StringVar(&cpuList, "c", "0", "cpu list")
 	flag.Parse()
+
+	for _, field := range strings.Split(cpuList, ",") {
+		core, err := strconv.Atoi(strings.TrimSpace(field))
+		if err != nil {
+			continue
+		}
+		coreSet.Add(uint32(core))
+	}
 
 	// Allow the current process to lock memory for eBPF resources.
 	if err := rlimit.RemoveMemlock(); err != nil {
@@ -91,7 +105,7 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 	now := time.Now()
 	iter := m.Iterate()
 	for iter.Next(&cpu, &totalIdleDurationTime) {
-		if int(cpu) < cpuCores {
+		if int(cpu) < cpuCores && coreSet.Contains(cpu) {
 			if calcIter > 0 {
 				durationTime := totalIdleDurationTime - lastIdleDurationTimes[cpu]
 				sb.WriteString(fmt.Sprintf("%s\t%d\t%.2f\n", now.Format("2006-01-02 15:04:05"), cpu, float64(durationTime*100.0/samplePeriodNS)))
