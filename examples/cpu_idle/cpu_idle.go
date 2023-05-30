@@ -134,7 +134,7 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 
 func printCpuIdleHistorys() {
 	for cpu := 0; cpu < cpuCores; cpu++ {
-		if coreSet.Contains(cpu) {
+		if coreSet.Contains(uint32(cpu)) {
 			fmt.Println(fmt.Sprintf("cpu %d, idle history: %s", cpu, strings.Join(cpuIdleHistorys[uint32(cpu)], ",")))
 		}
 	}
