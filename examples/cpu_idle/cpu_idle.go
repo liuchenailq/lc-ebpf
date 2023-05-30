@@ -90,7 +90,6 @@ func main() {
 
 	ticker := time.NewTicker(time.Duration(samplePeriodNS) * time.Nanosecond)
 	defer ticker.Stop()
-	defer printCpuIdleHistorys()
 	for range ticker.C {
 		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
 		if err != nil {
@@ -127,6 +126,9 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 		}
 	}
 	calcIter = calcIter + 1
+	if calcIter > 100 {
+		printCpuIdleHistorys()
+	}
 	return sb.String(), iter.Err()
 }
 
