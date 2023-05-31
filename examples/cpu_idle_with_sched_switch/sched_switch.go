@@ -8,7 +8,6 @@ import (
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
-	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"os/signal"
@@ -85,11 +84,19 @@ func main() {
 	}
 }
 
+func B2S(bs [16]int8) string {
+	ba := []byte{}
+	for _, b := range bs {
+		ba = append(ba, byte(b))
+	}
+	return string(ba)
+}
+
 func handleEvent(event bpfEvent) {
-	prevComm := unix.ByteSliceToString(event.PrevComm[:])
-	nextComm := unix.ByteSliceToString(event.NextComm[:])
+	prevComm := B2S(event.PrevComm)
+	nextComm := B2S(event.NextComm)
 	prevPid := event.PrevPid
 	nextPid := event.NextPid
 	cpu := event.Cpu
-	log.Println(fmt.Sprintf("cpu:%d, prevComm:%s, nextComm:%s, prevPid:%s, nextPid:%s", cpu, prevComm, nextComm, prevPid, nextPid))
+	log.Println(fmt.Sprintf("cpu:%d, prevComm:%s, nextComm:%s, prevPid:%d, nextPid:%d", cpu, prevComm, nextComm, prevPid, nextPid))
 }
