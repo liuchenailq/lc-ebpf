@@ -39,6 +39,8 @@ int sched_switch(struct syscalls_sched_switch_args *ctx) {
   __u64 now = bpf_ktime_get_ns();
   int prev_pid = ctx->prev_pid;
   int next_pid = ctx->next_pid;
+  char fmt[] = "cpu: %d, prev_pid: %d, next_pid: %d";
+  bpf_trace_printk(fmt, sizeof(fmt), cpu, prev_pid, next_pid);
   if (next_pid == 0) {
     // update start_idle_time_map
     __u64 *value = bpf_map_lookup_elem(&start_idle_time_map, &cpu);

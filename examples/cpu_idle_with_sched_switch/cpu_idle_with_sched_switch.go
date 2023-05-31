@@ -50,6 +50,8 @@ func main() {
 	flag.StringVar(&cpuList, "c", "0", "cpu list")
 	flag.Parse()
 
+	fmt.Println(fmt.Sprintf("samplePeriodNS: %d, cpuList: %s", samplePeriodNS, cpuList))
+
 	// Allow the current process to lock memory for eBPF resources.
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal(err)
@@ -68,9 +70,12 @@ func main() {
 	}
 	defer kp.Close()
 
+	fmt.Println("start cpu idle display")
+
 	ticker := time.NewTicker(time.Duration(samplePeriodNS) * time.Nanosecond)
 	defer ticker.Stop()
 	for range ticker.C {
+		fmt.Println(fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
 		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
 		if err != nil {
 			log.Printf("Error reading map: %s", err)
