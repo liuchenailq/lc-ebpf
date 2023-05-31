@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
 	"github.com/cilium/ebpf/rlimit"
+	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"os/signal"
@@ -31,7 +34,7 @@ func main() {
 	}
 	defer objs.Close()
 
-	kp, err := link.Tracepoint("sched", "sched_switch", objs.SysEnterOpen, nil)
+	kp, err := link.Tracepoint("sched", "sched_switch", objs.SchedSwitch, nil)
 	if err != nil {
 		log.Fatalf("opening tracepoint: %s", err)
 	}
@@ -80,4 +83,13 @@ func main() {
 		}
 		handleEvent(event)
 	}
+}
+
+func handleEvent(event bpfEvent) {
+	prevComm := unix.ByteSliceToString(event.PrevComm[:])
+	nextComm := unix.ByteSliceToString(event.NextComm[:])
+	prevPid := event.PrevPid
+	nextPid := event.NextPid
+	cpu := event.Cpu
+	log.Println(fmt.Sprintf("cpu:%d, prevComm:%s, nextComm:%s, prevPid:%s, nextPid:%s", cpu, prevComm, nextComm, prevPid, nextPid))
 }
