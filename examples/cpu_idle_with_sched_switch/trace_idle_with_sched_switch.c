@@ -45,6 +45,8 @@ int sched_switch(struct syscalls_sched_switch_args *ctx) {
     // update start_idle_time_map
     __u64 *value = bpf_map_lookup_elem(&start_idle_time_map, &cpu);
     if (value) {
+      char fmt[] = "cpu: %d, last_start_idle_time: %ld";
+      bpf_trace_printk(fmt, sizeof(fmt), cpu, *value);
       bpf_map_update_elem(&start_idle_time_map, &cpu, &now, BPF_EXIST);
     } else {
       bpf_map_update_elem(&start_idle_time_map, &cpu, &now, BPF_NOEXIST);
@@ -57,6 +59,8 @@ int sched_switch(struct syscalls_sched_switch_args *ctx) {
       __u64 duration_time = now - *start_idle_time;
       __u64 *value = bpf_map_lookup_elem(&idle_duration_time_map, &cpu);
       if (value) {
+        char fmt[] = "cpu: %d, last_idle_duration_time: %ld";
+        bpf_trace_printk(fmt, sizeof(fmt), cpu, *value);
         duration_time = duration_time + *value;
         bpf_map_update_elem(&idle_duration_time_map, &cpu, &duration_time,
                             BPF_EXIST);
