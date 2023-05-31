@@ -50,13 +50,14 @@ int sys_enter_open(struct syscalls_enter_open_args *ctx) {
   bpf_probe_read_str(&event.filename, sizeof(event.filename), fname);
   // /proc/sys/vm/max_map_count
   if ((event.filename[0] == '/' && event.filename[1] == 'p' &&
-              event.filename[2] == 'r' && event.filename[3] == 'o' &&
-              event.filename[4] == 'c' && event.filename[5] == '/' &&
-              event.filename[6] == 's' && event.filename[7] == 'y' &&
-              event.filename[8] == 's' && event.filename[9] == '/' &&
-              event.filename[10] == 'v' && event.filename[11] == 'm') &&
-              event.filename[12] == '/' && event.filename[13] == 'm' &&
-              event.filename[14] == 'a' && event.filename[15] == 'x' && event.filename[16] == '_' && event.filename[17] == 'm'){
+       event.filename[2] == 'r' && event.filename[3] == 'o' &&
+       event.filename[4] == 'c' && event.filename[5] == '/' &&
+       event.filename[6] == 's' && event.filename[7] == 'y' &&
+       event.filename[8] == 's' && event.filename[9] == '/' &&
+       event.filename[10] == 'v' && event.filename[11] == 'm') &&
+      event.filename[12] == '/' && event.filename[13] == 'm' &&
+      event.filename[14] == 'a' && event.filename[15] == 'x' &&
+      event.filename[16] == '_' && event.filename[17] == 'm') {
     event.syscall_nr = ctx->syscall_nr;
     event.flags = ctx->flags;
     event.mode = ctx->mode;
