@@ -25,9 +25,9 @@ char __license[] SEC("license") = "Dual MIT/GPL";
 // } idle_duration_time_map SEC(".maps");
 
 struct event {
-  u8 prev_comm[15];
+  char prev_comm[16];
   int prev_pid;
-  u8 next_comm[15];
+  char next_comm[16];
   int next_pid;
   __u32 cpu;
 };
@@ -39,17 +39,16 @@ struct {
 // Force emitting struct event into the ELF.
 const struct event *unused __attribute__((unused));
 
-struct syscalls_sched_switch_args {
-  /* The first 8 bytes is not allowed to read */
-  unsigned long pad;
 
-  u8 prev_comm[15];
-  int prev_pid;
-  int prev_prio;
-  long prev_state;
-  u8 next_comm[15];
-  int next_pid;
-  int next_prio;
+struct syscalls_sched_switch_args {
+    unsigned long long pad;
+  	char prev_comm[16];
+  	int prev_pid;
+  	int prev_prio;
+  	long long prev_state;
+  	char next_comm[16];
+  	int next_pid;
+  	int next_prio;
 };
 
 SEC("tracepoint/sched/sched_switch")
