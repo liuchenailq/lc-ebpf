@@ -1,3 +1,5 @@
+// +build ignore
+
 #include "bpf_tracing.h"
 #include "common.h"
 #include <linux/sched.h>
