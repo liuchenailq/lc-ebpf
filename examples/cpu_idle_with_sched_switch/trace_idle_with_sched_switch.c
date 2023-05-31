@@ -1,15 +1,14 @@
 // +build ignore
 
-#include "bpf_tracing.h"
+
 #include "common.h"
-#include <linux/sched.h>
 
 char __license[] SEC("license") = "Dual MIT/GPL";
 
- #define MAX_MAP_ENTRIES 20
+#define MAX_MAP_ENTRIES 20
 
 // start idle time of per-cpu
- struct {
+struct {
    __uint(type, BPF_MAP_TYPE_ARRAY);
    __uint(max_entries, MAX_MAP_ENTRIES);
    __type(key, __u32);
@@ -17,15 +16,12 @@ char __license[] SEC("license") = "Dual MIT/GPL";
  } start_idle_time_map SEC(".maps");
 
 // idle duration time of per-cpu
- struct {
+struct {
    __uint(type, BPF_MAP_TYPE_ARRAY);
    __uint(max_entries, MAX_MAP_ENTRIES);
    __type(key, __u32);
    __type(value, __u64);
  } idle_duration_time_map SEC(".maps");
-
-// Force emitting struct event into the ELF.
-const struct event *unused __attribute__((unused));
 
 struct syscalls_sched_switch_args {
   unsigned long long pad;
