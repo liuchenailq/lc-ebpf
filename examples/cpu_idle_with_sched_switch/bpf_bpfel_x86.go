@@ -13,14 +13,6 @@ import (
 	"github.com/cilium/ebpf"
 )
 
-type bpfEvent struct {
-	PrevComm [16]int8
-	PrevPid  int32
-	NextComm [16]int8
-	NextPid  int32
-	Cpu      uint32
-}
-
 // loadBpf returns the embedded CollectionSpec for bpf.
 func loadBpf() (*ebpf.CollectionSpec, error) {
 	reader := bytes.NewReader(_BpfBytes)
@@ -69,7 +61,8 @@ type bpfProgramSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfMapSpecs struct {
-	Events *ebpf.MapSpec `ebpf:"events"`
+	IdleDurationTimeMap *ebpf.MapSpec `ebpf:"idle_duration_time_map"`
+	StartIdleTimeMap    *ebpf.MapSpec `ebpf:"start_idle_time_map"`
 }
 
 // bpfObjects contains all objects after they have been loaded into the kernel.
@@ -91,12 +84,14 @@ func (o *bpfObjects) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfMaps struct {
-	Events *ebpf.Map `ebpf:"events"`
+	IdleDurationTimeMap *ebpf.Map `ebpf:"idle_duration_time_map"`
+	StartIdleTimeMap    *ebpf.Map `ebpf:"start_idle_time_map"`
 }
 
 func (m *bpfMaps) Close() error {
 	return _BpfClose(
-		m.Events,
+		m.IdleDurationTimeMap,
+		m.StartIdleTimeMap,
 	)
 }
 
