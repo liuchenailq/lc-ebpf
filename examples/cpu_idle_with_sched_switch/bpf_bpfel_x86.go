@@ -14,11 +14,9 @@ import (
 )
 
 type bpfEvent struct {
-	PrevComm [15]uint8
-	_        [1]byte
+	PrevComm [16]int8
 	PrevPid  int32
-	NextComm [15]uint8
-	_        [1]byte
+	NextComm [16]int8
 	NextPid  int32
 	Cpu      uint32
 }

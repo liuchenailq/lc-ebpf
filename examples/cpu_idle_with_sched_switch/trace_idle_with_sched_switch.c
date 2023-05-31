@@ -39,16 +39,15 @@ struct {
 // Force emitting struct event into the ELF.
 const struct event *unused __attribute__((unused));
 
-
 struct syscalls_sched_switch_args {
-    unsigned long long pad;
-  	char prev_comm[16];
-  	int prev_pid;
-  	int prev_prio;
-  	long long prev_state;
-  	char next_comm[16];
-  	int next_pid;
-  	int next_prio;
+  unsigned long long pad;
+  char prev_comm[16];
+  int prev_pid;
+  int prev_prio;
+  long long prev_state;
+  char next_comm[16];
+  int next_pid;
+  int next_prio;
 };
 
 SEC("tracepoint/sched/sched_switch")
