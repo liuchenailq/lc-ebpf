@@ -9,10 +9,8 @@ import (
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/shirou/gopsutil/cpu"
 	"log"
-	"os"
-	"os/signal"
+	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -43,12 +41,17 @@ func init() {
 }
 
 func main() {
-	stopper := make(chan os.Signal, 1)
-	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
-
 	flag.Uint64Var(&samplePeriodNS, "s", uint64(1000000000), "samplePeriodNS")
 	flag.StringVar(&cpuList, "c", "0", "cpu list")
 	flag.Parse()
+
+	for _, field := range strings.Split(cpuList, ",") {
+		core, err := strconv.Atoi(strings.TrimSpace(field))
+		if err != nil {
+			continue
+		}
+		coreSet.Add(uint32(core))
+	}
 
 	fmt.Println(fmt.Sprintf("samplePeriodNS: %d, cpuList: %s", samplePeriodNS, cpuList))
 
@@ -70,12 +73,9 @@ func main() {
 	}
 	defer kp.Close()
 
-	fmt.Println("start cpu idle display")
-
 	ticker := time.NewTicker(time.Duration(samplePeriodNS) * time.Nanosecond)
 	defer ticker.Stop()
 	for range ticker.C {
-		fmt.Println(fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
 		s, err := calcCpuUsage(objs.IdleDurationTimeMap)
 		if err != nil {
 			log.Printf("Error reading map: %s", err)
@@ -100,6 +100,7 @@ func calcCpuUsage(m *ebpf.Map) (string, error) {
 		if int(cpu) >= cpuCores {
 			continue
 		}
+		fmt.Println(fmt.Sprintf("cpu: %d, totalIdleDurationTime: %d", cpu, totalIdleDurationTime))
 		duration := time.Now().UnixNano() - lastCalcTimes[cpu]
 		lastCalcTimes[cpu] = time.Now().UnixNano()
 		idleDuration := totalIdleDurationTime - lastIdleDurationTimes[cpu]
